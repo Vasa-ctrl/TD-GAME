@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hra</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="main-menu">
+    <div class="menu-content">
+        <h1>Tower Defense</h1>
+        <p>Semestrální práce KAJ</p>
+        <div class="menu-buttons">
+            <button id="start-game-btn">Start Game</button>
+            <button class="menu-btn-secondary">Settings</button>
+            <button class="menu-btn-secondary">Leaderboard</button>
+        </div>
+    </div>
+</div>
+
+<!-- Obalovač pro celou herní UI, který na začátku skryjeme -->
+<div id="game-ui" class="hidden">
+    <header>
+        <div class="header-left">
+            <div id="game-stats">
+                <!-- Přidána ID pro snadnou manipulaci z JS -->
+                <span id="ui-lives">Lives: 20</span>
+                <span id="ui-money">Money: 100</span>
+                <span id="ui-wave">Wave: 1</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div id="game-controls">
+                <button id="wave-control-btn">Start Wave</button>
+                <button id="restart-btn">Restart</button>
+                <button id="settings-btn">Settings</button>
+                <button id="leaderboard-btn">Leaderboard</button>
+            </div>
+        </div>
+        <div class="header-right">
+            <div id="game-speed">
+                <span>Speed:</span>
+                <button class="speed-btn active">1x</button>
+                <button class="speed-btn">2x</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="left-sidebar">
+            <h2>Enemies</h2>
+            <!-- Zde se dynamicky vygenerují karty nepřátel -->
+            <div id="enemies-preview" class="grid-preview"></div>
+        </aside>
+
+        <main id="game-container">
+            <canvas id="gameCanvas"></canvas>
+        </main>
+
+        <aside class="right-sidebar">
+            <h2>Towers</h2>
+            <!-- Zde se dynamicky vygenerují karty věží -->
+            <div id="towers-preview" class="grid-preview"></div>
+        </aside>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Gameska jak pán. Created by Václav Bajer.</p>
+    </footer>
+</div>
+
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>
