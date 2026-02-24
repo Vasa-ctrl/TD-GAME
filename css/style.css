@@ -1,247 +1,310 @@
-/*! HTML5 Boilerplate v9.0.1 | MIT License | https://html5boilerplate.com/ */
+:root {
+    /* Neonová / Cyberpunk paleta */
+    --primary-bg: #1a1a1a;       /* Téměř černé pozadí */
+    --secondary-bg: #1a1a1a;     /* Stejné pro panely */
+    --header-footer-bg: #101010; /* Úplně černá pro hlavičku a patičku */
+    --text-color: #f0f0f0;       /* Téměř bílý text */
+    --canvas-bg: #ffffff;        /* Bílá pro herní plochu */
 
-/* main.css 3.0.0 | MIT License | https://github.com/h5bp/main.css#readme */
-/*
- * What follows is the result of much research on cross-browser styling.
- * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
- * Kroc Camen, and the H5BP dev community and team.
- */
-
-/* ==========================================================================
-   Base styles: opinionated defaults
-   ========================================================================== */
-
-html {
-  color: #222;
-  font-size: 1em;
-  line-height: 1.4;
+    /* Vaše neonové barvy jako akcenty */
+    --accent-purple: #7F00FF;
+    --accent-cyan: #00FFE1;
+    --accent-pink: #E600FF;
+    --accent-yellow: #FFEE00;
+    --accent-green: #77FF00; /* V záloze */
 }
 
-/*
- * Remove text-shadow in selection highlight:
- * https://twitter.com/miketaylr/status/12228805301
- *
- * Customize the background color to match your design.
- */
-
-::-moz-selection {
-  background: #b3d4fc;
-  text-shadow: none;
+/* Základní styly pro celou stránku */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100vh; /* Klíčové: Výška se vztahuje k oknu prohlížeče */
+    font-family: 'Consolas', 'Menlo', monospace; /* Monospace font pro tech vzhled */
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+    overflow: hidden; /* Zabrání jakémukoliv scrollu */
 }
 
-::selection {
-  background: #b3d4fc;
-  text-shadow: none;
+body {
+    display: flex;
+    flex-direction: column;
 }
 
-/*
- * A better looking default horizontal rule
- */
-
-hr {
-  display: block;
-  height: 1px;
-  border: 0;
-  border-top: 1px solid #ccc;
-  margin: 1em 0;
-  padding: 0;
+/* --- Hlavní menu --- */
+#main-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--header-footer-bg); /* Plně neprůhledné pozadí */
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: opacity 0.5s, visibility 0.5s;
 }
 
-/*
- * Remove the gap between audio, canvas, iframes,
- * images, videos and the bottom of their containers:
- * https://github.com/h5bp/html5-boilerplate/issues/440
- */
-
-audio,
-canvas,
-iframe,
-img,
-svg,
-video {
-  vertical-align: middle;
+.menu-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem; /* Mezera mezi prvky menu */
 }
 
-/*
- * Remove default fieldset styles.
- */
-
-fieldset {
-  border: 0;
-  margin: 0;
-  padding: 0;
+.menu-content h1 {
+    font-size: 4rem;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 15px var(--accent-cyan);
+    margin-bottom: 0; /* Odstraníme defaultní margin */
 }
 
-/*
- * Allow only vertical resizing of textareas.
- */
-
-textarea {
-  resize: vertical;
+.menu-content p {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    margin-top: 0; /* Odstraníme defaultní margin */
+    margin-bottom: 1rem;
 }
 
-/* ==========================================================================
-   Author's custom styles
-   ========================================================================== */
-
-/* ==========================================================================
-   Helper classes
-   ========================================================================== */
-
-/*
- * Hide visually and from screen readers
- */
-
-.hidden,
-[hidden] {
-  display: none !important;
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Mezera mezi tlačítky */
 }
 
-/*
- * Hide only visually, but have it available for screen readers:
- * https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
- *
- * 1. For long content, line feeds are not interpreted as spaces and small width
- *    causes content to wrap 1 word per line:
- *    https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe
- */
-
-.visually-hidden {
-  border: 0;
-  clip: rect(0, 0, 0, 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
-  /* 1 */
+#start-game-btn,
+.menu-btn-secondary {
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 1.5rem;
+    padding: 1rem 2rem;
+    background-color: transparent;
+    color: var(--accent-yellow);
+    border: 2px solid var(--accent-yellow);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, text-shadow 0.3s;
+    min-width: 250px; /* Zajistí stejnou šířku tlačítek */
 }
 
-/*
- * Extends the .visually-hidden class to allow the element
- * to be focusable when navigated to via the keyboard:
- * https://www.drupal.org/node/897638
- */
-
-.visually-hidden.focusable:active,
-.visually-hidden.focusable:focus {
-  clip: auto;
-  height: auto;
-  margin: 0;
-  overflow: visible;
-  position: static;
-  white-space: inherit;
-  width: auto;
+#start-game-btn:hover,
+.menu-btn-secondary:hover {
+    background-color: var(--accent-yellow);
+    color: var(--header-footer-bg);
+    text-shadow: 0 0 10px var(--header-footer-bg);
 }
 
-/*
- * Hide visually and from screen readers, but maintain layout
- */
-
-.invisible {
-  visibility: hidden;
+/* --- Herní UI --- */
+#game-ui {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Klíčové: UI se roztáhne na celou dostupnou výšku */
+    min-height: 0; /* Důležité pro správné chování flexboxu v některých prohlížečích */
 }
 
-/*
- * Clearfix: contain floats
- *
- * The use of `table` rather than `block` is only necessary if using
- * `::before` to contain the top-margins of child elements.
- */
-
-.clearfix::before,
-.clearfix::after {
-  content: "";
-  display: table;
+/* Třída pro skrytí prvků */
+.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    display: none !important; /* Důležité: Zajistí, že skrytý prvek nezabírá místo */
 }
 
-.clearfix::after {
-  clear: both;
+/* --- Hlavička --- */
+header {
+    background-color: var(--header-footer-bg);
+    color: var(--text-color);
+    padding: 0.8rem 1rem;
+    border-bottom: 4px solid var(--accent-purple);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
 }
 
-/* ==========================================================================
-   EXAMPLE Media Queries for Responsive Design.
-   These examples override the primary ('mobile first') styles.
-   Modify as content requires.
-   ========================================================================== */
-
-@media only screen and (min-width: 35em) {
-  /* Style adjustments for viewports that meet the condition */
+header .header-left,
+header .header-center,
+header .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
-@media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
-  (min-resolution: 1.25dppx),
-  (min-resolution: 120dpi) {
-  /* Style adjustments for high resolution devices */
+#game-stats span {
+    margin-right: 1rem;
+    color: var(--text-color);
 }
 
-/* ==========================================================================
-   Print styles.
-   Inlined to avoid the additional HTTP request:
-   https://www.phpied.com/delay-loading-your-print-css/
-   ========================================================================== */
-
-@media print {
-  *,
-  *::before,
-  *::after {
-    background: #fff !important;
-    color: #000 !important;
-    /* Black prints faster */
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-
-  a,
-  a:visited {
-    text-decoration: underline;
-  }
-
-  a[href]::after {
-    content: " (" attr(href) ")";
-  }
-
-  abbr[title]::after {
-    content: " (" attr(title) ")";
-  }
-
-  /*
-   * Don't show links that are fragment identifiers,
-   * or use the `javascript:` pseudo protocol
-   */
-  a[href^="#"]::after,
-  a[href^="javascript:"]::after {
-    content: "";
-  }
-
-  pre {
-    white-space: pre-wrap !important;
-  }
-
-  pre,
-  blockquote {
-    border: 1px solid #999;
-    page-break-inside: avoid;
-  }
-
-  tr,
-  img {
-    page-break-inside: avoid;
-  }
-
-  p,
-  h2,
-  h3 {
-    orphans: 3;
-    widows: 3;
-  }
-
-  h2,
-  h3 {
-    page-break-after: avoid;
-  }
+#game-controls button,
+#game-speed button {
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    color: var(--accent-yellow);
+    border: 1px solid var(--accent-yellow);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
+#game-controls button:hover,
+#game-speed button:hover {
+    background-color: var(--accent-yellow);
+    color: var(--header-footer-bg);
+}
+
+#game-speed .speed-btn.active {
+    background-color: var(--accent-yellow);
+    color: var(--header-footer-bg);
+    border-color: var(--accent-yellow);
+}
+
+/* Kontejner pro hlavní obsah a boční panely */
+.main-container {
+    display: flex;
+    flex: 1; /* Klíčové: Tento kontejner vyplní zbytek místa mezi hlavičkou a patičkou */
+    overflow: hidden;
+    min-height: 0; /* Důležité pro správné chování flexboxu */
+}
+
+/* Boční panely */
+.left-sidebar, .right-sidebar {
+    flex: 1;
+    padding: 1rem;
+    background-color: var(--secondary-bg);
+    border-right: 1px solid var(--accent-pink);
+    overflow: visible; /* Klíčové: Povolí tooltipu vykreslit se mimo hranice */
+}
+
+.right-sidebar {
+    border-right: none;
+    border-left: 1px solid var(--accent-pink);
+}
+
+/* Hlavní herní obsah */
+main#game-container {
+    flex: 4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--primary-bg);
+}
+
+/* Canvas pro hru */
+#gameCanvas {
+    max-width: 100%;
+    max-height: 100%;
+    background-color: var(--canvas-bg);
+    border: 2px solid var(--accent-yellow);
+}
+
+/* Patička */
+footer {
+    background-color: var(--header-footer-bg);
+    color: var(--text-color);
+    text-align: center;
+    padding: 1rem;
+    border-top: 4px solid var(--accent-purple);
+}
+
+/* Styly pro mřížku v bočních panelech */
+.grid-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: 15px;
+    margin-top: 1rem;
+}
+
+.grid-card {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background-color: #333;
+    border: 1px solid var(--accent-pink);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.grid-card:hover {
+    transform: scale(1.05);
+    border-color: var(--accent-cyan);
+    z-index: 20;
+}
+
+.grid-card img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+}
+
+/* --- Tooltip (popisek) --- */
+.grid-tooltip {
+    position: absolute;
+    left: 110%;
+    top: 0;
+    min-width: 220px;
+    padding: 0.5rem;
+    background-color: var(--header-footer-bg);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 5px;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-10px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.grid-card:hover .grid-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.right-sidebar .grid-tooltip {
+    left: auto;
+    right: 110%;
+    transform: translateX(10px);
+}
+
+.right-sidebar .grid-card:hover .grid-tooltip {
+    transform: translateX(0);
+}
+
+.grid-tooltip h3 {
+    margin: 0.2rem 0.5rem;
+    color: var(--accent-cyan);
+}
+
+.grid-tooltip p {
+    margin: 0.5rem 0.5rem;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #ccc;
+}
+
+.grid-tooltip hr {
+    border: none;
+    border-top: 1px solid var(--accent-cyan);
+    margin: 0.5rem 0;
+}
+
+.grid-tooltip ul {
+    list-style-type: none;
+    padding: 0 0.5rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.grid-tooltip ul li {
+    padding-left: 1em;
+    text-indent: -0.7em;
+}
+
+.grid-tooltip ul li::before {
+    content: "» ";
+    color: var(--accent-yellow);
+}
