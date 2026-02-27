@@ -22,13 +22,14 @@ export class Tower {
     // Herní vlastnosti
     this.range = this.config.range / 100 * 3; // Přepočet range na dlaždice (cca)
     this.damage = this.config.damage;
-    this.fireRate = this.config.fireRate || 60; // Počet snímků mezi výstřely (cca 1 sekunda)
+    // attackSpeed určuje, kolikrát za sekundu věž vystřelí (při 60 FPS)
+    this.fireRate = 60 / (this.config.attackSpeed || 1);
 
     // Časování střelby
     this.cooldown = 0;
 
     // Animace
-    this.scale = 1.0;
+    this.scale = 1.2;
   }
 
 
@@ -40,9 +41,9 @@ export class Tower {
    */
   update(enemies, projectiles, gameSpeed) {
     // Animace návratu do původní velikosti
-    if (this.scale > 1.0) {
+    if (this.scale > 1.2) {
       this.scale -= 0.01 * gameSpeed;
-      if (this.scale < 1.0) this.scale = 1.0;
+      if (this.scale < 1.2) this.scale = 1.2;
     }
 
     if (this.cooldown > 0) {
@@ -89,7 +90,7 @@ export class Tower {
     projectiles.push(new Projectile(this.x + 0.5, this.y + 0.5, target, this.damage, this.projectileImage));
 
     // Spustíme animaci "kopnutí" (zvětšení)
-    this.scale = 1.2;
+    this.scale = 1.5;
   }
 
   /**
@@ -109,7 +110,7 @@ export class Tower {
       ctx.shadowColor = "#7F00FF";
       ctx.shadowBlur = 10;
 
-      if (this.scale > 1.0) {
+      if (this.scale > 1.2) {
         ctx.shadowColor = "#00FFE1";
         ctx.shadowBlur = 30;
       }

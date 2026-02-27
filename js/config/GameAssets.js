@@ -47,6 +47,7 @@ export const TowerStats = {
     price: 60,
     damage: 15,
     range: 80,
+    attackSpeed: 1,
   },
   viking: {
     name: "Viking",
@@ -56,6 +57,7 @@ export const TowerStats = {
     price: 120,
     damage: 40,
     range: 60,
+    attackSpeed: 1.2,
   },
   knight: {
     name: "Knight",
@@ -65,6 +67,7 @@ export const TowerStats = {
     price: 90,
     damage: 25,
     range: 120,
+    attackSpeed: 0.8,
   },
   ninja: {
     name: "Ninja",
@@ -74,6 +77,7 @@ export const TowerStats = {
     price: 110,
     damage: 20,
     range: 150,
+    attackSpeed: 4,
   },
   sorcerer: {
     name: "Sorcerer",
@@ -83,6 +87,7 @@ export const TowerStats = {
     price: 250,
     damage: 60,
     range: 200,
+    attackSpeed: 2,
   },
   deserter: {
     name: "Deserter",
@@ -92,6 +97,7 @@ export const TowerStats = {
     price: 140,
     damage: 35,
     range: 110,
+    attackSpeed: 1,
   }
 };
 
@@ -171,6 +177,6 @@ assets.effects.bloodSplash.src = './assets/img/effects/BloodSplash.png';
 
 // Tiles
 assets.tiles.path.src = './assets/img/tiles/path/CobblestonePath.png';
-assets.tiles.solid1.src = './assets/img/tiles/SolidFlowers.png';
-assets.tiles.solid2.src = './assets/img/tiles/SolidGrass.png';
-assets.tiles.solid3.src = './assets/img/tiles/SolidStones.png';
+assets.tiles.solid1.src = './assets/img/tiles/Brick_Wall.png';
+assets.tiles.solid2.src = './assets/img/tiles/Brick_Wall.png';
+assets.tiles.solid3.src = './assets/img/tiles/Brick_Wall_Cracked.png';
