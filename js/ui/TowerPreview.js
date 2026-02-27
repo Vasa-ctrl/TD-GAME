@@ -1,47 +1,37 @@
-import { TowerStats } from '../config/towersConfig.js';
+import { TowerStats } from '../config/GameAssets.js'; // Zkontroluj si správný název souboru!
 
-/**
- * Vygeneruje náhledy věží v pravém bočním panelu na základě konfigurace.
- */
 export function renderTowerPreview() {
-    const container = document.getElementById('towers-preview');
-    if (!container) {
-        console.error('Kontejner #towers-preview nebyl nalezen!');
-        return;
-    }
+  const container = document.getElementById('towers-preview');
+  if (!container) {
+    console.error('Kontejner #towers-preview nebyl nalezen!');
+    return;
+  }
 
-    // Vyčistíme kontejner
-    container.innerHTML = '';
+  container.innerHTML = '';
 
-    // Projdeme všechny věže v konfiguraci
-    for (const key in TowerStats) {
-        const tower = TowerStats[key];
+  for (const key in TowerStats) {
+    const tower = TowerStats[key];
 
-        // Vytvoříme kartu
-        const card = document.createElement('div');
-        card.className = 'grid-card';
+    const card = document.createElement('div');
+    card.className = 'grid-card';
 
-        // --- DRAG & DROP: Nastavení ---
-        card.draggable = true; // Povolíme přetahování
+    card.draggable = true;
 
-        // Event listener pro začátek tažení
-        card.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', key);
-            e.dataTransfer.effectAllowed = 'copy';
-        });
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', key);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
 
-        // Vytvoříme obrázek
-        const img = document.createElement('img');
-        img.src = tower.image;
-        img.alt = tower.name;
-        card.appendChild(img);
+    // OPRAVA: Přidáno ".src", protože tower.image je nyní objekt Image
+    const img = document.createElement('img');
+    img.src = tower.image.src;
+    img.alt = tower.name;
+    card.appendChild(img);
 
-        // Vytvoříme tooltip
-        const tooltip = document.createElement('div');
-        tooltip.className = 'grid-tooltip';
+    const tooltip = document.createElement('div');
+    tooltip.className = 'grid-tooltip';
 
-        // Obsah tooltipu
-        tooltip.innerHTML = `
+    tooltip.innerHTML = `
             <h3>${tower.name}</h3>
             <p>${tower.description}</p>
             <hr>
@@ -52,9 +42,7 @@ export function renderTowerPreview() {
             </ul>
         `;
 
-        card.appendChild(tooltip);
-
-        // Přidáme kartu do kontejneru
-        container.appendChild(card);
-    }
+    card.appendChild(tooltip);
+    container.appendChild(card);
+  }
 }
