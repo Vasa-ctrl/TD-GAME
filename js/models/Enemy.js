@@ -1,79 +1,138 @@
-import { GameObject } from './GameObject.js';
-import { Assets } from '../core/GameAssets.js';
+import { EnemyStats, assets } from '../config/GameAssets.js'; // Zkontroluj správnost cesty
 
-export class Enemy extends GameObject {
-  #hp;
+export class Enemy {
+  constructor(type, path) {
+    this.type = type;
+    this.path = path;
 
-  // Přidali jsme path (pole waypointů) a tileSize
-  constructor(startX, startY, maxHP, speed, reward, enemyType, path, tileSize) {
-    super(startX, startY);
+    // Načteme statistiky z konfigurace
+    const stats = EnemyStats[type];
 
-    this.#hp = maxHP;
-    this.speed = speed;
-    this.isDead = false;
-    this.reward = reward;
-
-    // Pevná velikost (doplň podle svých obrázků)
-    this.width = 64;
-    this.height = 64;
-
-    this.image = Assets.enemies[enemyType];
-
-    // --- Logika cesty ---
-    this.path = path;           // Zkopírujeme si pole bodů, např. [{x: 0, y: 1}, {x: 1, y: 1}, ...]
-    this.tileSize = tileSize;
-    this.pathIndex = 1;         // Začínáme mířit na druhý bod (na prvním se rodíme)
-  }
-
-  get hp() {
-    return this.#hp;
-  }
-
-  takeDamage(damage) {
-    this.#hp -= damage;
-    if (this.#hp <= 0) {
-      this.isDead = true;
-    }
-  }
-
-  draw(ctx) {
-    if (!this.isDead) {
-      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-    }
-  }
-
-  // Metoda update je nyní UVNITŘ třídy
-  update() {
-    if (this.isDead) return;
-
-    // Pokud jsme došli na konec cesty (nepřítel prošel mapou)
-    if (this.pathIndex >= this.path.length) {
-      this.isDead = true;
-      console.log("Nepřítel prošel do základny! Tady bys měl odečíst životy.");
+    // Pokud typ neexistuje v konfiguraci, raději vypíšeme chybu
+    if (!stats) {
+      console.error(`Enemy type '${type}' not found in EnemyStats!`);
       return;
     }
 
-    // 1. Zjistíme, kam zrovna jdeme (přepočet na přesné pixely plátna)
-    const targetTile = this.path[this.pathIndex];
-    const targetPixelX = targetTile.x * this.tileSize;
-    const targetPixelY = targetTile.y * this.tileSize;
+    this.hp = stats.hp;
+    this.maxHp = stats.hp;
+    this.speed = stats.speed * 0.02; // Zpomalíme pro herní měřítko
+    this.reward = stats.reward;
 
-    // 2. Vypočítáme vzdálenosti na osách X a Y
-    const dx = targetPixelX - this.x;
-    const dy = targetPixelY - this.y;
+    // OPRAVA: Bereme obrázek přímo ze statistik (už je to načtený Image objekt)
+    this.image = stats.image;
 
-    // 3. Spočítáme celkovou vzdálenost k cíli (Pythagorova věta)
+    // OPRAVA: Správná cesta pro bloodSplash z objektu assets
+    this.bloodImage = assets.effects.bloodSplash;
+
+    // Pozice (začínáme na prvním bodu cesty)
+    this.x = path[0].x;
+    this.y = path[0].y;
+
+    this.waypointIndex = 0;
+    this.radius = 0.3; // Poloměr v dlaždicích
+    this.distanceTraveled = 0;
+    this.markedForDeletion = false;
+
+    // Stav umírání
+    this.isDying = false;
+    this.deathTimer = 30; // Jak dlouho bude vidět krev (snímků)
+    this.rewardClaimed = false; // Zda už byla vyplacena odměna
+  }
+
+  update(gameSpeed) {
+    // Pokud umírá, jen počítáme čas do smazání
+    if (this.isDying) {
+      this.deathTimer -= gameSpeed;
+      if (this.deathTimer <= 0) {
+        this.markedForDeletion = true;
+      }
+      return; // Už se nehýbe
+    }
+
+    // Pokud jsme na konci cesty
+    if (this.waypointIndex >= this.path.length - 1) {
+      this.markedForDeletion = true;
+      return; // Došli jsme do cíle
+    }
+
+    const target = this.path[this.waypointIndex + 1];
+    const dx = target.x - this.x;
+    const dy = target.y - this.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // 4. Pokud jsme už dostatečně blízko, přeskočíme rovnou na cíl a jdeme na další bod
-    if (distance <= this.speed) {
-      this.x = targetPixelX;
-      this.y = targetPixelY;
-      this.pathIndex++;
+    // Aktuální rychlost ovlivněná zrychlením hry
+    const currentSpeed = this.speed * gameSpeed;
+
+    // Pokud jsme blízko dalšího bodu, přepneme na něj
+    if (distance < currentSpeed) {
+      this.x = target.x;
+      this.y = target.y;
+      this.waypointIndex++;
     } else {
-      // 5. Jinak se plynule posuneme směrem k cíli pomocí normalizovaného vektoru
-      this.x += (dx / distance) * this.speed;
-      this.y += (dy / distance) * this.speed;
+      // Jinak se posuneme k němu
+      this.x += (dx / distance) * currentSpeed;
+      this.y += (dy / distance) * currentSpeed;
+      this.distanceTraveled += currentSpeed;
+    }
+  }
+
+  draw(ctx, tileSize) {
+    // Pokud umírá, kreslíme krev
+    if (this.isDying) {
+      // Zkontrolujeme, zda je obrázek načtený a platný
+      if (this.bloodImage && this.bloodImage.complete) {
+        const size = tileSize;
+        const offset = (tileSize - size) / 2;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.deathTimer / 30); // Fade out efekt
+        ctx.drawImage(
+          this.bloodImage,
+          this.x * tileSize + offset,
+          this.y * tileSize + offset,
+          size,
+          size
+        );
+        ctx.restore();
+      }
+      return; // Nekreslíme už nepřítele ani health bar
+    }
+
+    // Kreslení nepřítele
+    if (this.image && this.image.complete) {
+      const size = tileSize * 0.8;
+      const offset = (tileSize - size) / 2;
+
+      // Kreslíme jen pokud je v rámci plátna (optimalizace a prevence chyb)
+      ctx.drawImage(
+        this.image,
+        this.x * tileSize + offset,
+        this.y * tileSize + offset,
+        size,
+        size
+      );
+    }
+
+    // Health bar
+    const hpPercentage = this.hp / this.maxHp;
+    const barWidth = tileSize * 0.8;
+    const barX = this.x * tileSize + (tileSize - barWidth) / 2;
+
+    ctx.fillStyle = 'red';
+    ctx.fillRect(barX, this.y * tileSize - 5, barWidth, 4);
+
+    ctx.fillStyle = 'green';
+    ctx.fillRect(barX, this.y * tileSize - 5, barWidth * Math.max(0, hpPercentage), 4); // Prevence záporné šířky
+  }
+
+  takeDamage(amount) {
+    if (this.isDying) return; // Už je mrtvý
+
+    this.hp -= amount;
+    if (this.hp <= 0) {
+      this.hp = 0;
+      this.isDying = true; // Spustíme animaci smrti
     }
   }
 }
