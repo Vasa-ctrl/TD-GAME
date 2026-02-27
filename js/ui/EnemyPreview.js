@@ -1,38 +1,30 @@
-import { EnemyStats } from '../config/enemiesConfig.js';
+import { EnemyStats } from '../config/GameAssets.js'; // Zkontroluj si správný název souboru!
 
-/**
- * Vygeneruje náhledy nepřátel v levém bočním panelu na základě konfigurace.
- */
 export function renderEnemyPreview() {
-    const container = document.getElementById('enemies-preview');
-    if (!container) {
-        console.error('Kontejner #enemies-preview nebyl nalezen!');
-        return;
-    }
+  const container = document.getElementById('enemies-preview');
+  if (!container) {
+    console.error('Kontejner #enemies-preview nebyl nalezen!');
+    return;
+  }
 
-    // Vyčistíme kontejner (pro jistotu)
-    container.innerHTML = '';
+  container.innerHTML = '';
 
-    // Projdeme všechny nepřátele v konfiguraci
-    for (const key in EnemyStats) {
-        const enemy = EnemyStats[key];
+  for (const key in EnemyStats) {
+    const enemy = EnemyStats[key];
 
-        // Vytvoříme kartu
-        const card = document.createElement('div');
-        card.className = 'grid-card';
+    const card = document.createElement('div');
+    card.className = 'grid-card';
 
-        // Vytvoříme obrázek
-        const img = document.createElement('img');
-        img.src = enemy.image;
-        img.alt = enemy.name;
-        card.appendChild(img);
+    // OPRAVA: Přidáno ".src", protože enemy.image je nyní objekt Image
+    const img = document.createElement('img');
+    img.src = enemy.image.src;
+    img.alt = enemy.name;
+    card.appendChild(img);
 
-        // Vytvoříme tooltip
-        const tooltip = document.createElement('div');
-        tooltip.className = 'grid-tooltip';
+    const tooltip = document.createElement('div');
+    tooltip.className = 'grid-tooltip';
 
-        // Obsah tooltipu
-        tooltip.innerHTML = `
+    tooltip.innerHTML = `
             <h3>${enemy.name}</h3>
             <p>${enemy.description}</p>
             <hr>
@@ -43,9 +35,7 @@ export function renderEnemyPreview() {
             </ul>
         `;
 
-        card.appendChild(tooltip);
-
-        // Přidáme kartu do kontejneru
-        container.appendChild(card);
-    }
+    card.appendChild(tooltip);
+    container.appendChild(card);
+  }
 }
