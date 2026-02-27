@@ -17,7 +17,7 @@ export class Game {
 
     // Herní stav
     this.lives = 20;
-    this.money = 1000;
+    this.money = 100;
     this.wave = 1;
     this.gameSpeed = 1; // Výchozí rychlost hry
 
@@ -25,6 +25,8 @@ export class Game {
     this.uiLives = document.getElementById('ui-lives');
     this.uiMoney = document.getElementById('ui-money');
     this.uiWave = document.getElementById('ui-wave');
+
+    this.showTowerRanges = false;
 
     this.setupUI();
 
@@ -47,6 +49,14 @@ export class Game {
       waveBtn.addEventListener('click', () => {
         this.waveManager.startNextWave();
       });
+      const settingsBtn = document.getElementById('settings-btn');
+      if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+          // Přepne true na false a naopak
+          this.showTowerRanges = !this.showTowerRanges;
+          console.log(`Zobrazování dosahu věží: ${this.showTowerRanges ? 'ZAPNUTO' : 'VYPNUTO'}`);
+        });
+      }
     }
 
     // Tlačítka pro rychlost
@@ -190,8 +200,7 @@ export class Game {
 
     // 2. Vykreslení
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.map.draw(this.ctx, this.tileSize);
-
+    this.map.draw(this.ctx, this.tileSize, this.showTowerRanges);
     requestAnimationFrame((ts) => this.animate(ts));
   }
 }

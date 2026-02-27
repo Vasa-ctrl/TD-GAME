@@ -152,7 +152,7 @@ export class Map {
     return { moneyEarned, damageTaken };
   }
 
-  draw(ctx, tileSize) {
+  draw(ctx, tileSize, showRange) {
     if (!this.isLoaded) return;
 
     // 1. Vykreslení dlaždic (textury)
@@ -210,7 +210,7 @@ export class Map {
     ctx.stroke();
 
     // 3. Věže
-    this.towers.forEach(tower => tower.draw(ctx, tileSize));
+    this.towers.forEach(tower => tower.draw(ctx, tileSize, showRange));
 
     // 4. Nepřátelé
     this.enemies.forEach(enemy => enemy.draw(ctx, tileSize));

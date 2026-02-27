@@ -96,51 +96,41 @@ export class Tower {
    * Vykreslí věž na plátno.
    * @param {CanvasRenderingContext2D} ctx
    * @param {number} tileSize Velikost jedné dlaždice.
+   * @param {boolean} showRange Zda se má vykreslit dosah věže.
    */
-  draw(ctx, tileSize) {
-    // OPRAVA: Přidána pojistka, že image není undefined
+  draw(ctx, tileSize, showRange) {
     if (this.image && this.image.complete) {
       const centerX = this.x * tileSize + tileSize / 2;
       const centerY = this.y * tileSize + tileSize / 2;
-
-      // Aplikujeme měřítko (scale)
       const currentSize = tileSize * this.scale;
       const offset = currentSize / 2;
 
-      ctx.save(); // Uložíme kontext
-
-      // Efekt obtažení (záře)
-      ctx.shadowColor = "#7F00FF"; // Fialová záře
+      ctx.save();
+      ctx.shadowColor = "#7F00FF";
       ctx.shadowBlur = 10;
 
-      // Pokud je zvětšená (střílí), uděláme záři silnější a tyrkysovou
       if (this.scale > 1.0) {
         ctx.shadowColor = "#00FFE1";
         ctx.shadowBlur = 30;
       }
 
-      // Vykreslíme obrázek vycentrovaný a se správnou velikostí
-      ctx.drawImage(
-        this.image,
-        centerX - offset,
-        centerY - offset,
-        currentSize,
-        currentSize
-      );
-
-      ctx.restore(); // Obnovíme kontext (zrušíme stín pro další vykreslování)
+      ctx.drawImage(this.image, centerX - offset, centerY - offset, currentSize, currentSize);
+      ctx.restore();
     }
 
-    const centerX = this.x * tileSize + tileSize / 2;
-    const centerY = this.y * tileSize + tileSize / 2;
+    // --- ZDE JE TVÁ ÚPRAVA ---
+    if (showRange) {
+      const centerX = this.x * tileSize + tileSize / 2;
+      const centerY = this.y * tileSize + tileSize / 2;
 
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, this.range * tileSize, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(0, 255, 225, 0.1)"; // Průhledná tyrkysová výplň
-    ctx.fill();
-    ctx.strokeStyle = "rgba(0, 255, 225, 0.5)"; // Výraznější okraj
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.closePath();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, this.range * tileSize, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 255, 225, 0.1)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0, 255, 225, 0.5)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+    }
   }
 }
