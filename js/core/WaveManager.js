@@ -1,60 +1,95 @@
-import { Enemy } from '../models/Enemy.js';
+import { LevelWaves } from '../config/Waves.js';
 
 export class WaveManager {
-    constructor(wavesData) {
-        this.waves = wavesData;
-        this.currentWaveIndex = 0;   // Jakou vlnu hrajeme (0 = první vlna)
-        this.currentGroupIndex = 0;  // Jakou skupinu ve vlně zrovna posíláme
-        this.spawnedInGroup = 0;     // Kolik jsme jich v této skupině už poslali
-
-        this.spawnTimer = 0;
+    constructor(game) {
+        this.game = game;
+        this.currentWaveIndex = -1; // Zatím žádná vlna nezačala
         this.isWaveActive = false;
+
+        // Fronta nepřátel k vytvoření
+        this.spawnQueue = [];
+        this.spawnTimer = 0;
     }
 
     startNextWave() {
-        if (this.currentWaveIndex < this.waves.length) {
-            this.isWaveActive = true;
-            this.currentGroupIndex = 0;
-            this.spawnedInGroup = 0;
-            this.spawnTimer = 0;
-            console.log(`Začíná vlna ${this.currentWaveIndex + 1}!`);
-        } else {
-            console.log("Všechny vlny byly poraženy!");
+        if (this.isWaveActive) {
+            console.log("Vlna už běží!");
+            return;
         }
+
+        this.currentWaveIndex++;
+
+        // Kontrola, zda máme další vlnu
+        if (this.currentWaveIndex >= LevelWaves.length) {
+            console.log("Všechny vlny dokončeny! Vítězství!");
+            return;
+        }
+
+        const waveConfig = LevelWaves[this.currentWaveIndex];
+        console.log(`Spouštím vlnu ${this.currentWaveIndex + 1}`);
+
+        this.isWaveActive = true;
+        this.game.wave = this.currentWaveIndex + 1;
+        this.game.updateUI();
+
+        // Naplníme frontu nepřátel
+        this.prepareSpawnQueue(waveConfig);
     }
 
-    update(deltaTime, enemiesArray, startX, startY) {
+    prepareSpawnQueue(waveConfig) {
+        this.spawnQueue = [];
+        let currentTimeOffset = 0;
+
+        for (const group of waveConfig.groups) {
+            for (let i = 0; i < group.count; i++) {
+                // Přidáme nepřítele do fronty s časem, kdy se má objevit
+                this.spawnQueue.push({
+                    type: group.type,
+                    time: currentTimeOffset
+                });
+
+                // Posuneme čas pro dalšího nepřítele
+                // Ošetření pro případ, že interval je příliš malý (např. 1 ms)
+                let interval = group.interval;
+                if (interval < 10) interval = 1000; // Fallback na 1 sekundu
+
+                currentTimeOffset += interval;
+            }
+        }
+
+        // Resetujeme časovač
+        this.spawnTimer = 0;
+    }
+
+    update(deltaTime, gameSpeed) {
         if (!this.isWaveActive) return;
 
-        const currentWave = this.waves[this.currentWaveIndex];
-        const currentGroup = currentWave.groups[this.currentGroupIndex];
+        // Přičteme uplynulý čas (v ms) vynásobený rychlostí hry
+        this.spawnTimer += deltaTime * gameSpeed;
 
-        // Přičteme čas k našim stopkám
-        this.spawnTimer += deltaTime;
+        // Kontrola fronty
+        while (this.spawnQueue.length > 0) {
+            // Podíváme se na prvního nepřítele ve frontě
+            const nextEnemy = this.spawnQueue[0];
 
-        // Je čas poslat dalšího nepřítele z aktuální skupiny?
-        if (this.spawnTimer >= currentGroup.interval) {
+            if (this.spawnTimer >= nextEnemy.time) {
+                // Je čas ho vytvořit
+                this.game.map.spawnEnemy(nextEnemy.type);
 
-            // 1. Vytvoříme nepřítele a pošleme ho na mapu
-            const newEnemy = new Enemy(startX, startY, currentGroup.type);
-            enemiesArray.push(newEnemy);
-
-            // 2. Zapíšeme si, že jsme ho poslali a vynulujeme stopky
-            this.spawnedInGroup++;
-            this.spawnTimer = 0;
-
-            // 3. Kontrola: Odeslali jsme už všechny z této skupiny?
-            if (this.spawnedInGroup >= currentGroup.count) {
-                this.currentGroupIndex++; // Přepneme na další skupinu (např. z Goblinů na Ogry)
-                this.spawnedInGroup = 0;  // Vynulujeme počítadlo pro novou skupinu
-
-                // 4. Kontrola: Byla tohle poslední skupina v celé vlně?
-                if (this.currentGroupIndex >= currentWave.groups.length) {
-                    this.isWaveActive = false;
-                    this.currentWaveIndex++;
-                    console.log("Vlna kompletně odeslána na mapu.");
-                }
+                // Odstraníme ho z fronty
+                this.spawnQueue.shift();
+            } else {
+                // Ještě není čas, ukončíme cyklus (fronta je seřazená podle času)
+                break;
             }
+        }
+
+        // Kontrola konce vlny
+        // Vlna končí, když je fronta prázdná A na mapě nejsou žádní nepřátelé
+        if (this.spawnQueue.length === 0 && this.game.map.enemies.length === 0) {
+            this.isWaveActive = false;
+            console.log("Vlna dokončena!");
+            // Zde můžeme přidat bonus za dokončení vlny
         }
     }
 }
