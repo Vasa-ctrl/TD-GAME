@@ -1,95 +1,110 @@
-import { LevelWaves } from '../config/Waves.js';
+import {LevelWaves} from '../config/Waves.js';
+import {EnemyStats} from '../config/GameAssets.js';
 
+/**
+ * Manages the spawning logic, wave progression, and difficulty scaling of enemies.
+ */
 export class WaveManager {
-    constructor(game) {
-        this.game = game;
-        this.currentWaveIndex = -1; // Zatím žádná vlna nezačala
-        this.isWaveActive = false;
+  /**
+   * @param {Game} game - Reference to the main game instance.
+   */
+  constructor(game) {
+    this.game = game;
+    this.currentWaveIndex = -1;
+    this.isWaveActive = false;
+    this.spawnQueue = [];
+    this.spawnTimer = 0;
+  }
 
-        // Fronta nepřátel k vytvoření
-        this.spawnQueue = [];
-        this.spawnTimer = 0;
+  /**
+   * Initiates the next wave of enemies.
+   * Uses predefined configurations or generates a random one if exhausted.
+   */
+  startNextWave() {
+    if (this.isWaveActive) {
+      console.log("Vlna už běží!");
+      return;
     }
 
-    startNextWave() {
-        if (this.isWaveActive) {
-            console.log("Vlna už běží!");
-            return;
-        }
+    this.currentWaveIndex++;
+    const waveConfig = LevelWaves[this.currentWaveIndex] || this.generateRandomWave(this.currentWaveIndex + 1);
 
-        this.currentWaveIndex++;
+    this.isWaveActive = true;
+    this.game.wave = this.currentWaveIndex + 1;
+    this.game.updateUI();
+    if (this.game.audio) this.game.audio.playWaveMusic();
 
-        // Kontrola, zda máme další vlnu
-        if (this.currentWaveIndex >= LevelWaves.length) {
-            console.log("Všechny vlny dokončeny! Vítězství!");
-            return;
-        }
+    this.prepareSpawnQueue(waveConfig);
+  }
 
-        const waveConfig = LevelWaves[this.currentWaveIndex];
-        console.log(`Spouštím vlnu ${this.currentWaveIndex + 1}`);
+  /**
+   * Procedurally generates a wave configuration based on the current wave number.
+   * @param {number} waveNumber - The current wave count.
+   * @returns {Object} The generated wave configuration containing enemy groups.
+   */
+  generateRandomWave(waveNumber) {
+    const groups = [];
+    const difficultyPoints = waveNumber * 100;
+    let currentPoints = 0;
+    const enemyTypes = Object.keys(EnemyStats);
 
-        this.isWaveActive = true;
-        this.game.wave = this.currentWaveIndex + 1;
-        this.game.updateUI();
+    while (currentPoints < difficultyPoints) {
+      const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+      const enemyCost = EnemyStats[randomType].hp / 10;
+      let count = Math.floor(Math.random() * 10) + 1;
 
-        // Naplníme frontu nepřátel
-        this.prepareSpawnQueue(waveConfig);
+      if (currentPoints + (count * enemyCost) > difficultyPoints + 500) {
+        count = Math.max(1, Math.floor((difficultyPoints - currentPoints) / enemyCost));
+      }
+
+      groups.push({
+        type: randomType,
+        count: count,
+        interval: Math.max(200, 1500 - (waveNumber * 20))
+      });
+      currentPoints += count * enemyCost;
+    }
+    return {groups: groups};
+  }
+
+  /**
+   * Populates the spawn queue with enemies and their scheduled spawn times.
+   * @param {Object} waveConfig - Configuration object for the wave.
+   */
+  prepareSpawnQueue(waveConfig) {
+    this.spawnQueue = [];
+    let currentTimeOffset = 0;
+
+    for (const group of waveConfig.groups) {
+      for (let i = 0; i < group.count; i++) {
+        this.spawnQueue.push({ type: group.type, time: currentTimeOffset });
+        currentTimeOffset += (group.interval < 10) ? 1000 : group.interval;
+      }
+    }
+    this.spawnTimer = 0;
+  }
+
+  /**
+   * Updates the spawning timer and checks for wave completion.
+   * @param {number} deltaTime - Time elapsed since last frame.
+   * @param {number} gameSpeed - Current game speed multiplier.
+   */
+  update(deltaTime, gameSpeed) {
+    if (!this.isWaveActive) return;
+    this.spawnTimer += deltaTime * gameSpeed;
+
+    while (this.spawnQueue.length > 0 && this.spawnTimer >= this.spawnQueue[0].time) {
+      this.game.map.spawnEnemy(this.spawnQueue.shift().type);
     }
 
-    prepareSpawnQueue(waveConfig) {
-        this.spawnQueue = [];
-        let currentTimeOffset = 0;
+    if (this.spawnQueue.length === 0 && this.game.map.enemies.length === 0) {
+      this.isWaveActive = false;
+      if (this.game.audio) this.game.audio.playIdleMusic();
 
-        for (const group of waveConfig.groups) {
-            for (let i = 0; i < group.count; i++) {
-                // Přidáme nepřítele do fronty s časem, kdy se má objevit
-                this.spawnQueue.push({
-                    type: group.type,
-                    time: currentTimeOffset
-                });
-
-                // Posuneme čas pro dalšího nepřítele
-                // Ošetření pro případ, že interval je příliš malý (např. 1 ms)
-                let interval = group.interval;
-                if (interval < 10) interval = 1000; // Fallback na 1 sekundu
-
-                currentTimeOffset += interval;
-            }
-        }
-
-        // Resetujeme časovač
-        this.spawnTimer = 0;
+      if (this.game.saveCurrentState) {
+        this.game.saveCurrentState();
+        console.log("Vlna dokončena, hra byla automaticky uložena!");
+      }
     }
-
-    update(deltaTime, gameSpeed) {
-        if (!this.isWaveActive) return;
-
-        // Přičteme uplynulý čas (v ms) vynásobený rychlostí hry
-        this.spawnTimer += deltaTime * gameSpeed;
-
-        // Kontrola fronty
-        while (this.spawnQueue.length > 0) {
-            // Podíváme se na prvního nepřítele ve frontě
-            const nextEnemy = this.spawnQueue[0];
-
-            if (this.spawnTimer >= nextEnemy.time) {
-                // Je čas ho vytvořit
-                this.game.map.spawnEnemy(nextEnemy.type);
-
-                // Odstraníme ho z fronty
-                this.spawnQueue.shift();
-            } else {
-                // Ještě není čas, ukončíme cyklus (fronta je seřazená podle času)
-                break;
-            }
-        }
-
-        // Kontrola konce vlny
-        // Vlna končí, když je fronta prázdná A na mapě nejsou žádní nepřátelé
-        if (this.spawnQueue.length === 0 && this.game.map.enemies.length === 0) {
-            this.isWaveActive = false;
-            console.log("Vlna dokončena!");
-            // Zde můžeme přidat bonus za dokončení vlny
-        }
-    }
+  }
 }
