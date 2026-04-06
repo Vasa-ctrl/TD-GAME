@@ -1,48 +1,26 @@
-import { TowerStats } from '../config/GameAssets.js'; // Zkontroluj si správný název souboru!
+import { TowerStats } from '../config/GameAssets.js';
+import './GameCard.js';
 
+/**
+ * Renders the tower selection sidebar/preview area by iterating through available
+ * tower statistics and creating draggable 'game-card' custom elements for each tower type.
+ * @returns {void}
+ */
 export function renderTowerPreview() {
   const container = document.getElementById('towers-preview');
-  if (!container) {
-    console.error('Kontejner #towers-preview nebyl nalezen!');
-    return;
-  }
-
+  if (!container) return;
   container.innerHTML = '';
 
-  for (const key in TowerStats) {
-    const tower = TowerStats[key];
-
-    const card = document.createElement('div');
-    card.className = 'grid-card';
+  Object.entries(TowerStats).forEach(([key, tower]) => {
+    const card = document.createElement('game-card');
+    card.setAttribute('name', tower.name);
+    card.setAttribute('image', tower.image.src);
+    card.setAttribute('description', tower.description);
+    card.setAttribute('stats', JSON.stringify({ Price: tower.price, Damage: tower.damage, Range: tower.range }));
 
     card.draggable = true;
+    card.ondragstart = (e) => e.dataTransfer.setData('text/plain', key);
 
-    card.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', key);
-      e.dataTransfer.effectAllowed = 'copy';
-    });
-
-    // OPRAVA: Přidáno ".src", protože tower.image je nyní objekt Image
-    const img = document.createElement('img');
-    img.src = tower.image.src;
-    img.alt = tower.name;
-    card.appendChild(img);
-
-    const tooltip = document.createElement('div');
-    tooltip.className = 'grid-tooltip';
-
-    tooltip.innerHTML = `
-            <h3>${tower.name}</h3>
-            <p>${tower.description}</p>
-            <hr>
-            <ul>
-                <li>Price: ${tower.price}</li>
-                <li>Damage: ${tower.damage}</li>
-                <li>Range: ${tower.range}</li>
-            </ul>
-        `;
-
-    card.appendChild(tooltip);
     container.appendChild(card);
-  }
+  });
 }
