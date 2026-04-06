@@ -1,0 +1,158 @@
+
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hra</title>
+    <link rel="stylesheet" href="css/style.css">
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+<div id="main-menu">
+    <div class="menu-content">
+        <h1>Tower Defense</h1>
+        <p>Semestrální práce KAJ</p>
+        <div class="menu-buttons">
+            <button id="continue-game-btn">Continue Game</button>
+            <button id="start-game-btn">New Game</button>
+            <button id="main-settings-btn" class="menu-btn-secondary">Settings</button>
+            <button id="leaderboard-btn" class="menu-btn-secondary">Leaderboard</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="leaderboard-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Leaderboard</h2>
+        <table id="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Wave</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <button id="close-leaderboard-btn" class="menu-btn-secondary">Close</button>
+    </div>
+</div>
+
+
+<div id="settings-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Settings</h2>
+
+    <div class="settings-group">
+      <h3>Audio</h3>
+
+      <div class="setting-item">
+        <label for="mute-checkbox">Mute All Sounds:</label>
+        <input type="checkbox" id="mute-checkbox">
+      </div>
+
+      <div class="setting-item">
+        <label for="music-volume-slider">Music Volume:</label>
+        <input type="range" id="music-volume-slider" class="game-slider" min="0" max="1" step="0.01" value="0.4">
+      </div>
+
+      <div class="setting-item">
+        <label for="sfx-volume-slider">SFX Volume:</label>
+        <input type="range" id="sfx-volume-slider" class="game-slider" min="0" max="1" step="0.01" value="0.6">
+      </div>
+    </div>
+    <hr class="settings-divider">
+
+    <div class="settings-group">
+      <h3>Game</h3>
+
+      <div class="setting-item">
+        <label for="show-range-checkbox">Show Tower Ranges:</label>
+        <input type="checkbox" id="show-range-checkbox">
+      </div>
+    </div>
+
+    <button id="close-settings-btn" class="menu-btn-secondary">Close</button>
+  </div>
+</div>
+
+<div id="game-over-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2 class="game-over-title">PEVNOST PADLA</h2>
+    <p class="game-over-text">Dosáhl jsi vlny: <span id="game-over-wave" class="game-over-wave-count">0</span></p>
+
+    <form id="save-score-form">
+      <label for="player-name-input" class="form-label">Zadej jméno hrdiny:</label>
+      <input
+        type="text"
+        id="player-name-input"
+        placeholder="ARAGORN"
+        required
+        pattern=".{3,15}"
+        title="3 až 15 znaků"
+        autocomplete="off"
+      >
+
+      <div class="form-actions">
+        <button type="submit" class="menu-btn-secondary btn-save">ULOŽIT DO ŽEBŘÍČKU</button>
+        <button type="button" id="skip-score-btn" class="menu-btn-secondary btn-skip">PŘESKOČIT</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="game-ui" class="hidden">
+    <header>
+        <div class="header-left">
+            <div id="game-stats">
+                <span id="ui-lives"></span>
+                <span id="ui-money"></span>
+                <span id="ui-wave"></span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div id="game-controls">
+                <button id="menu-btn">Menu</button>
+                <button id="wave-control-btn">Start Wave</button>
+                <button id="restart-btn">Restart</button>
+                <button id="settings-btn">Settings</button>
+            </div>
+        </div>
+        <div class="header-right">
+            <div id="game-speed">
+                <span>Speed:</span>
+                <button class="speed-btn active">1x</button>
+                <button class="speed-btn">2x</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="left-sidebar">
+            <h2>Enemies</h2>
+            <div id="enemies-preview" class="grid-preview"></div>
+        </aside>
+
+        <main id="game-container">
+            <canvas id="gameCanvas"></canvas>
+        </main>
+
+        <aside class="right-sidebar">
+            <h2>Towers</h2>
+            <div id="towers-preview" class="grid-preview"></div>
+        </aside>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Gameska jak pán. Created by Václav Bajer.</p>
+    </footer>
+</div>
+
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>
