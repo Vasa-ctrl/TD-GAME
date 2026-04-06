@@ -13,8 +13,10 @@ export class DragDrop {
         this.setupListeners();
     }
 
+    /**
+     * Nastaví posluchače událostí pro drag over a drop na plátně.
+     */
     setupListeners() {
-        // Povolení dropu
         this.canvas.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'copy';
@@ -23,17 +25,14 @@ export class DragDrop {
             this.game.highlightTile(x, y);
         });
 
-        // Zpracování dropu
         this.canvas.addEventListener('drop', (e) => {
             e.preventDefault();
 
-            // Získáme klíč věže (např. "ben")
             const key = e.dataTransfer.getData('text/plain');
             const { x, y } = this.getMouseGridPosition(e);
 
             console.log(`Dropnuta věž: ${key} na pozici [${x}, ${y}]`);
 
-            // Zavoláme metodu hry pro postavení věže
             this.game.buildTower(key, x, y);
         });
     }
@@ -46,12 +45,9 @@ export class DragDrop {
     getMouseGridPosition(e) {
         const rect = this.canvas.getBoundingClientRect();
 
-        // Pozice myši relativně k canvasu
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        // Přepočet na souřadnice mřížky
-        // Musíme vzít v úvahu aktuální škálování canvasu (pokud se liší velikost CSS a atributů width/height)
         const scaleX = this.canvas.width / rect.width;
         const scaleY = this.canvas.height / rect.height;
 
