@@ -1,50 +1,48 @@
 import { TowerStats } from '../config/GameAssets.js';
 import { Projectile } from './Projectile.js';
 
+/**
+ * Represents a defensive tower in the game.
+ */
 export class Tower {
   /**
-   * @param {string} type Typ věže (klíč z configu, např. 'ben').
-   * @param {number} x X souřadnice v mřížce.
-   * @param {number} y Y souřadnice v mřížce.
+   * Creates a new Tower instance.
+   * @param {string} type - The type of the tower (e.g., 'basic', 'sniper').
+   * @param {number} x - The x-coordinate on the grid.
+   * @param {number} y - The y-coordinate on the grid.
+   * @param {AudioController} audio - The audio controller for playing sound effects.
    */
-  constructor(type, x, y) {
+  constructor(type, x, y, audio) {
+    /** @type {string} */
     this.type = type;
+    /** @type {number} */
     this.x = x;
+    /** @type {number} */
     this.y = y;
+    /** @type {AudioController} */
+    this.audio = audio;
 
-    // Načteme statistiky z konfigurace
-    this.config = TowerStats[type];
+    const stats = TowerStats[type];
+    Object.assign(this, stats);
 
-    // OPRAVA: Už nevytváříme "new Image()". Bereme rovnou hotový objekt!
-    this.image = this.config.image;
-    this.projectileImage = this.config.projectileImage;
-
-    // Herní vlastnosti
-    this.range = this.config.range / 100 * 3; // Přepočet range na dlaždice (cca)
-    this.damage = this.config.damage;
-    // attackSpeed určuje, kolikrát za sekundu věž vystřelí (při 60 FPS)
-    this.fireRate = 60 / (this.config.attackSpeed || 1);
-
-    // Časování střelby
+    /** @type {number} */
+    this.range = stats.range / 100 * 3;
+    /** @type {number} */
+    this.fireRate = 90 / (stats.attackSpeed || 1);
+    /** @type {number} */
     this.cooldown = 0;
-
-    // Animace
+    /** @type {number} */
     this.scale = 1.2;
   }
 
-
   /**
-   * Aktualizuje stav věže (hledání cíle, střelba).
-   * @param {Array} enemies Seznam všech nepřátel.
-   * @param {Array} projectiles Seznam všech střel (pro přidání nové).
-   * @param {number} gameSpeed Rychlost hry.
+   * Updates the tower's state, handles cooldowns, and attempts to shoot.
+   * @param {Array} enemies - List of active enemies.
+   * @param {Array} projectiles - List of active projectiles to add to.
+   * @param {number} gameSpeed - The current game speed multiplier.
    */
   update(enemies, projectiles, gameSpeed) {
-    // Animace návratu do původní velikosti
-    if (this.scale > 1.2) {
-      this.scale -= 0.01 * gameSpeed;
-      if (this.scale < 1.2) this.scale = 1.2;
-    }
+    this.scale = Math.max(1.2, this.scale - 0.01 * gameSpeed);
 
     if (this.cooldown > 0) {
       this.cooldown -= gameSpeed;
@@ -59,79 +57,25 @@ export class Tower {
   }
 
   /**
-   * Najde nejvhodnější cíl (nejpřednější nepřítel v dosahu).
-   * @param {Array} enemies
-   * @returns {Enemy|null}
+   * Finds the furthest enemy within the tower's range.
+   * @param {Array} enemies - List of active enemies.
+   * @returns {Enemy|undefined} The target enemy or undefined if none in range.
    */
   findTarget(enemies) {
-    let bestTarget = null;
-    let maxDistance = -1;
-
-    for (const enemy of enemies) {
-      // Vypočítáme vzdálenost k nepříteli (v dlaždicích)
-      const dx = enemy.x - this.x;
-      const dy = enemy.y - this.y;
-      const distanceToEnemy = Math.sqrt(dx * dx + dy * dy);
-
-      // Pokud je v dosahu
-      if (distanceToEnemy <= this.range) {
-        // A je "více vpředu" než aktuální nejlepší cíl
-        if (enemy.distanceTraveled > maxDistance) {
-          maxDistance = enemy.distanceTraveled;
-          bestTarget = enemy;
-        }
-      }
-    }
-    return bestTarget;
-  }
-
-  shoot(target, projectiles) {
-    // OPRAVA: Předáváme this.projectileImage (objekt) místo textové cesty
-    projectiles.push(new Projectile(this.x + 0.5, this.y + 0.5, target, this.damage, this.projectileImage));
-
-    // Spustíme animaci "kopnutí" (zvětšení)
-    this.scale = 1.5;
+    return enemies
+      .filter(e => Math.hypot(e.x - this.x, e.y - this.y) <= this.range)
+      .sort((a, b) => b.distanceTraveled - a.distanceTraveled)[0];
   }
 
   /**
-   * Vykreslí věž na plátno.
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {number} tileSize Velikost jedné dlaždice.
-   * @param {boolean} showRange Zda se má vykreslit dosah věže.
+   * Fires a projectile at the specified target.
+   * @param {Enemy} target - The enemy to shoot at.
+   * @param {Array} projectiles - The array to push the new projectile into.
    */
-  draw(ctx, tileSize, showRange) {
-    if (this.image && this.image.complete) {
-      const centerX = this.x * tileSize + tileSize / 2;
-      const centerY = this.y * tileSize + tileSize / 2;
-      const currentSize = tileSize * this.scale;
-      const offset = currentSize / 2;
+  shoot(target, projectiles) {
+    projectiles.push(new Projectile(this.x + 0.5, this.y + 0.5, target, this.damage, this.projectileImage));
 
-      ctx.save();
-      ctx.shadowColor = "#7F00FF";
-      ctx.shadowBlur = 10;
-
-      if (this.scale > 1.2) {
-        ctx.shadowColor = "#00FFE1";
-        ctx.shadowBlur = 30;
-      }
-
-      ctx.drawImage(this.image, centerX - offset, centerY - offset, currentSize, currentSize);
-      ctx.restore();
-    }
-
-    // --- ZDE JE TVÁ ÚPRAVA ---
-    if (showRange) {
-      const centerX = this.x * tileSize + tileSize / 2;
-      const centerY = this.y * tileSize + tileSize / 2;
-
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, this.range * tileSize, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 255, 225, 0.1)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(0, 255, 225, 0.5)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.closePath();
-    }
+    this.audio?.playSound(this.shootSound);
+    this.scale = 1.5;
   }
 }

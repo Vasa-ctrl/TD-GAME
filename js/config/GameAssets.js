@@ -1,5 +1,11 @@
-// --- 1. Definice a načtení Assets ---
+/**
+ * @file GameAssets.js
+ * @description Central configuration for all game assets including images, audio, and entity statistics.
+ */
 
+/**
+ * Object containing all loaded Image and Audio instances.
+ */
 export const assets = {
   enemies: {
     azog: new Image(),
@@ -15,14 +21,14 @@ export const assets = {
     ninja: new Image(),
     sorcerer: new Image(),
     viking: new Image(),
-    deserter: new Image() // Přidáno pro Desertera
+    deserter: new Image()
   },
   projectiles: {
     axe: new Image(),
     shuriken: new Image(),
     spell: new Image(),
     sword: new Image(),
-    flame: new Image() // Přidáno pro Desertera
+    flame: new Image()
   },
   effects: {
     bloodSplash: new Image()
@@ -32,81 +38,107 @@ export const assets = {
     solid1: new Image(),
     solid2: new Image(),
     solid3: new Image()
+  },
+  music: {
+    background1: new Audio('./assets/audio/music/BackgroundMusic1.mp3'),
+    background2: new Audio('./assets/audio/music/BackgroundMusic2.mp3')
+  },
+
+  sfx: {
+    death: new Audio('./assets/audio/Dead.mp3'),
+    leak: new Audio('./assets/audio/Dead.mp3'),
+    shootAxe: new Audio('./assets/audio/Axe.mp3'),
+    shootShuriken: new Audio('./assets/audio/Shuriken.mp3'),
+    shootSpell: new Audio('./assets/audio/FireBall.mp3'),
+    shootSword: new Audio('./assets/audio/Sword.mp3'),
+    buildTower: new Audio('./assets/audio/TowerBuilds.mp3'),
+    start: new Audio('./assets/audio/StartOfTheGame.mp3')
   }
 };
 
-
-// --- 2. Konfigurace statistik (využívá přímo assets) ---
-
+/**
+ * Configuration for tower types.
+ * @type {Object.<string, {name: string, description: string, image: HTMLImageElement, projectileImage: HTMLImageElement, shootSound: HTMLAudioElement, price: number, damage: number, range: number, attackSpeed: number}>}
+ */
 export const TowerStats = {
   ben: {
     name: "Ben",
-    description: "Great bear warrior and great companion",
+    description: "Great bear warrior. Cheap starter tower.",
     image: assets.towers.ben,
     projectileImage: assets.projectiles.sword,
-    price: 60,
+    shootSound: assets.sfx.shootSword,
+    price: 50,
     damage: 15,
-    range: 80,
-    attackSpeed: 1,
-  },
-  viking: {
-    name: "Viking",
-    description: "Smelly viking that fears no one",
-    image: assets.towers.viking,
-    projectileImage: assets.projectiles.axe,
-    price: 120,
-    damage: 40,
-    range: 60,
+    range: 85,
     attackSpeed: 1.2,
   },
   knight: {
     name: "Knight",
-    description: "A fair and virtuous knight at your service",
+    description: "Reliable medium-range defender.",
     image: assets.towers.knight,
     projectileImage: assets.projectiles.sword,
+    shootSound: assets.sfx.shootSword,
     price: 90,
-    damage: 25,
-    range: 120,
-    attackSpeed: 0.8,
+    damage: 30,
+    range: 110,
+    attackSpeed: 1.2,
   },
   ninja: {
     name: "Ninja",
-    description: "Have you seen him?",
+    description: "Fast attacks, huge range, low damage. Good for fast enemies.",
     image: assets.towers.ninja,
     projectileImage: assets.projectiles.shuriken,
-    price: 110,
-    damage: 20,
-    range: 150,
-    attackSpeed: 4,
+    shootSound: assets.sfx.shootShuriken,
+    price: 120,
+    damage: 15,
+    range: 160,
+    attackSpeed: 3.5,
   },
-  sorcerer: {
-    name: "Sorcerer",
-    description: "He can do more than just card tricks",
-    image: assets.towers.sorcerer,
-    projectileImage: assets.projectiles.spell,
-    price: 250,
-    damage: 60,
-    range: 200,
-    attackSpeed: 2,
+  viking: {
+    name: "Viking",
+    description: "Slow but devastating strikes. Great against heavy armor.",
+    image: assets.towers.viking,
+    projectileImage: assets.projectiles.axe,
+    shootSound: assets.sfx.shootAxe,
+    price: 130,
+    damage: 75,
+    range: 90,
+    attackSpeed: 0.7,
   },
   deserter: {
     name: "Deserter",
-    description: "His friends call him a coward, but for the people, he is their only salvation from evil.",
+    description: "Solid all-rounder with good fire rate.",
     image: assets.towers.deserter,
     projectileImage: assets.projectiles.flame,
-    price: 140,
-    damage: 35,
-    range: 110,
-    attackSpeed: 1,
+    shootSound: assets.sfx.shootSpell,
+    price: 160,
+    damage: 45,
+    range: 120,
+    attackSpeed: 1.8,
+  },
+  sorcerer: {
+    name: "Sorcerer",
+    description: "Heavy artillery. Expensive but immensely powerful.",
+    image: assets.towers.sorcerer,
+    projectileImage: assets.projectiles.spell,
+    shootSound: assets.sfx.shootSpell,
+    price: 250,
+    damage: 120,
+    range: 180,
+    attackSpeed: 0.8,
   }
 };
 
+/**
+ * Configuration for enemy types.
+ * @type {Object.<string, {name: string, description: string, image: HTMLImageElement, hp: number, speed: number, reward: number}>}
+ */
 export const EnemyStats = {
   goblinRider: {
     name: "Goblin Rider",
-    description: "Quick goblin rider, that excels with his agility",
+    description: "Standard unit.",
     image: assets.enemies.goblinRider,
-    hp: 50,
+    hp: 60,
     speed: 1.8,
     reward: 10,
   },
@@ -114,43 +146,46 @@ export const EnemyStats = {
     name: "Camel Rider",
     description: "Fast unit from the desert.",
     image: assets.enemies.camelRider,
-    hp: 75,
+    hp: 80,         // Zvýšeno ze 75
     speed: 2.2,
     reward: 15,
   },
   voidling: {
     name: "Voidling",
-    description: "I .... am speed.",
+    description: "Extremely fast, but fragile.",
     image: assets.enemies.voidling,
-    hp: 40,
-    speed: 4,
+    hp: 35,
+    speed: 3.5,
     reward: 8,
   },
   ogre: {
     name: "Ogre",
-    description: "Head1: I AM READY<br>Head2: friends call me ogre.",
+    description: "Massive meat shield. Slow but hard to kill.",
     image: assets.enemies.ogre,
-    hp: 300,
-    speed: 0.5,
-    reward: 50,
+    hp: 450,
+    speed: 0.6,
+    reward: 40,
   },
   azog: {
     name: "Azog",
-    description: "Mighty warchief of orcs.",
+    description: "Mighty warchief of orcs. A tough bruiser.",
     image: assets.enemies.azog,
-    hp: 150,
-    speed: 1.0,
-    reward: 30,
+    hp: 650,
+    speed: 1.1,
+    reward: 25,
   },
   lucifer: {
     name: "Lucifer",
     description: "The sending of hell itself",
     image: assets.enemies.lucifer,
-    hp: 2500,
-    speed: 0.4,
+    hp: 3500,
+    speed: 0.7,
     reward: 666,
   },
 };
+
+// --- 3. Nastavení zdrojů (src) ---
+
 // Enemies
 assets.enemies.azog.src = './assets/img/enemies/Azog.png';
 assets.enemies.ogre.src = './assets/img/enemies/Ogre.png';
@@ -165,14 +200,14 @@ assets.towers.knight.src = './assets/img/towers/Knight.png';
 assets.towers.ben.src = './assets/img/towers/Ben.png';
 assets.towers.sorcerer.src = './assets/img/towers/Sorcerer.png';
 assets.towers.viking.src = './assets/img/towers/Viking.png';
-assets.towers.deserter.src = './assets/img/towers/Deserter.png'; // Přidáno
+assets.towers.deserter.src = './assets/img/towers/Deserter.png';
 
 // Projectiles & Effects
 assets.projectiles.shuriken.src = './assets/img/projectiles/ShurikenProjectile.png';
 assets.projectiles.axe.src = './assets/img/projectiles/AxeProjectile.png';
 assets.projectiles.spell.src = './assets/img/projectiles/SpellProjectile.png';
 assets.projectiles.sword.src = './assets/img/projectiles/SwordProjectile.png';
-assets.projectiles.flame.src = './assets/img/projectiles/FlameProjectile.png'; // Přidáno
+assets.projectiles.flame.src = './assets/img/projectiles/FlameProjectile.png';
 assets.effects.bloodSplash.src = './assets/img/effects/BloodSplash.png';
 
 // Tiles
