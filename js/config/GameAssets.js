@@ -40,8 +40,8 @@ export const assets = {
     solid3: new Image()
   },
   music: {
-    background1: new Audio('./assets/audio/music/BackgroundMusic1.mp3'),
-    background2: new Audio('./assets/audio/music/BackgroundMusic2.mp3')
+    background1: new Audio('./assets/audio/music/BackGroundMusic1.mp3'),
+    background2: new Audio('./assets/audio/music/BackGroundMusic2.mp3')
   },
 
   sfx: {
