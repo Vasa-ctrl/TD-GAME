@@ -44,7 +44,7 @@ export class WaveManager {
    */
   generateRandomWave(waveNumber) {
     const groups = [];
-    const difficultyPoints = waveNumber * 500;
+    const difficultyPoints = (waveNumber+53)**1.35 * 60;
     let currentPoints = 0;
     const enemyTypes = Object.keys(EnemyStats);
 
