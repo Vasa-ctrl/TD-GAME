@@ -44,13 +44,13 @@ export class WaveManager {
    */
   generateRandomWave(waveNumber) {
     const groups = [];
-    const difficultyPoints = waveNumber * 100;
+    const difficultyPoints = waveNumber * 500;
     let currentPoints = 0;
     const enemyTypes = Object.keys(EnemyStats);
 
     while (currentPoints < difficultyPoints) {
       const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-      const enemyCost = EnemyStats[randomType].hp / 10;
+      const enemyCost = EnemyStats[randomType].hp / 8;
       let count = Math.floor(Math.random() * 10) + 1;
 
       if (currentPoints + (count * enemyCost) > difficultyPoints + 500) {
