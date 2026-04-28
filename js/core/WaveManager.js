@@ -44,7 +44,7 @@ export class WaveManager {
    */
   generateRandomWave(waveNumber) {
     const groups = [];
-    const difficultyPoints = waveNumber * 100;
+    const difficultyPoints = (waveNumber+53)**1.35 * 60;
     let currentPoints = 0;
     const enemyTypes = Object.keys(EnemyStats);
 
@@ -78,7 +78,7 @@ export class WaveManager {
     for (const group of waveConfig.groups) {
       for (let i = 0; i < group.count; i++) {
         this.spawnQueue.push({ type: group.type, time: currentTimeOffset });
-        currentTimeOffset += (group.interval < 10) ? 1000 : group.interval;
+        currentTimeOffset += Math.max(44, 444)
       }
     }
     this.spawnTimer = 0;
