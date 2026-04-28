@@ -8,8 +8,8 @@ export class AudioControl {
    * Initializes the audio controller with default volumes and music tracks.
    */
   constructor() {
-    this.musicVolume = 0.0;
-    this.sfxVolume = 0.0;
+    this.musicVolume = 0.1;
+    this.sfxVolume = 0.3;
 
     this.waveMusic = assets.music.background1;
     this.waveMusic.loop = true;
