@@ -78,7 +78,7 @@ export const TowerStats = {
     image: assets.towers.knight,
     projectileImage: assets.projectiles.sword,
     shootSound: assets.sfx.shootSword,
-    price: 90,
+    price: 110,
     damage: 30,
     range: 110,
     attackSpeed: 1.2,
@@ -89,7 +89,7 @@ export const TowerStats = {
     image: assets.towers.ninja,
     projectileImage: assets.projectiles.shuriken,
     shootSound: assets.sfx.shootShuriken,
-    price: 120,
+    price: 140,
     damage: 15,
     range: 160,
     attackSpeed: 3.5,
@@ -100,7 +100,7 @@ export const TowerStats = {
     image: assets.towers.viking,
     projectileImage: assets.projectiles.axe,
     shootSound: assets.sfx.shootAxe,
-    price: 130,
+    price: 180,
     damage: 75,
     range: 90,
     attackSpeed: 0.7,
@@ -111,7 +111,7 @@ export const TowerStats = {
     image: assets.towers.deserter,
     projectileImage: assets.projectiles.flame,
     shootSound: assets.sfx.shootSpell,
-    price: 160,
+    price: 200,
     damage: 45,
     range: 120,
     attackSpeed: 1.8,
@@ -122,7 +122,7 @@ export const TowerStats = {
     image: assets.towers.sorcerer,
     projectileImage: assets.projectiles.spell,
     shootSound: assets.sfx.shootSpell,
-    price: 250,
+    price: 450,
     damage: 120,
     range: 180,
     attackSpeed: 0.8,
@@ -138,7 +138,7 @@ export const EnemyStats = {
     name: "Goblin Rider",
     description: "Standard unit.",
     image: assets.enemies.goblinRider,
-    hp: 60,
+    hp: 70,
     speed: 1.8,
     reward: 10,
   },
@@ -146,15 +146,15 @@ export const EnemyStats = {
     name: "Camel Rider",
     description: "Fast unit from the desert.",
     image: assets.enemies.camelRider,
-    hp: 80,         // Zvýšeno ze 75
-    speed: 2.2,
+    hp: 80,
+    speed: 2.3,
     reward: 15,
   },
   voidling: {
     name: "Voidling",
     description: "Extremely fast, but fragile.",
     image: assets.enemies.voidling,
-    hp: 35,
+    hp: 45,
     speed: 3.5,
     reward: 8,
   },
@@ -162,8 +162,8 @@ export const EnemyStats = {
     name: "Ogre",
     description: "Massive meat shield. Slow but hard to kill.",
     image: assets.enemies.ogre,
-    hp: 450,
-    speed: 0.6,
+    hp: 500,
+    speed: 0.7,
     reward: 40,
   },
   azog: {
@@ -171,7 +171,7 @@ export const EnemyStats = {
     description: "Mighty warchief of orcs. A tough bruiser.",
     image: assets.enemies.azog,
     hp: 650,
-    speed: 1.1,
+    speed: 1.2,
     reward: 25,
   },
   lucifer: {
@@ -179,14 +179,12 @@ export const EnemyStats = {
     description: "The sending of hell itself",
     image: assets.enemies.lucifer,
     hp: 3500,
-    speed: 0.7,
+    speed: 0.8,
     reward: 666,
   },
 };
 
-// --- 3. Nastavení zdrojů (src) ---
 
-// Enemies
 assets.enemies.azog.src = './assets/img/enemies/Azog.png';
 assets.enemies.ogre.src = './assets/img/enemies/Ogre.png';
 assets.enemies.camelRider.src = './assets/img/enemies/CamelRider.png';
@@ -194,7 +192,6 @@ assets.enemies.goblinRider.src = './assets/img/enemies/GoblinRider.png';
 assets.enemies.lucifer.src = './assets/img/enemies/Lucifer.png';
 assets.enemies.voidling.src = './assets/img/enemies/Voidling.png';
 
-// Towers
 assets.towers.ninja.src = './assets/img/towers/Ninja.png';
 assets.towers.knight.src = './assets/img/towers/Knight.png';
 assets.towers.ben.src = './assets/img/towers/Ben.png';
@@ -202,7 +199,6 @@ assets.towers.sorcerer.src = './assets/img/towers/Sorcerer.png';
 assets.towers.viking.src = './assets/img/towers/Viking.png';
 assets.towers.deserter.src = './assets/img/towers/Deserter.png';
 
-// Projectiles & Effects
 assets.projectiles.shuriken.src = './assets/img/projectiles/ShurikenProjectile.png';
 assets.projectiles.axe.src = './assets/img/projectiles/AxeProjectile.png';
 assets.projectiles.spell.src = './assets/img/projectiles/SpellProjectile.png';
@@ -210,7 +206,6 @@ assets.projectiles.sword.src = './assets/img/projectiles/SwordProjectile.png';
 assets.projectiles.flame.src = './assets/img/projectiles/FlameProjectile.png';
 assets.effects.bloodSplash.src = './assets/img/effects/BloodSplash.png';
 
-// Tiles
 assets.tiles.path.src = './assets/img/tiles/path/CobblestonePath.png';
 assets.tiles.solid1.src = './assets/img/tiles/Brick_Wall.png';
 assets.tiles.solid2.src = './assets/img/tiles/Brick_Wall.png';
