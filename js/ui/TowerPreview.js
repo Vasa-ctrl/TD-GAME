@@ -2,8 +2,12 @@ import { TowerStats } from '../config/GameAssets.js';
 import './GameCard.js';
 
 /**
- * Renders the tower selection sidebar/preview area by iterating through available
- * tower statistics and creating draggable 'game-card' custom elements for each tower type.
+ * Renders the tower selection sidebar (preview area).
+ * Iterates through available tower statistics and creates draggable
+ * custom `<game-card>` web components for each tower type.
+ * * Sets up the native HTML5 Drag & Drop API by attaching the tower's key
+ * to the dataTransfer object during the 'dragstart' event.
+ *
  * @returns {void}
  */
 export function renderTowerPreview() {

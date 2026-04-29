@@ -1,3 +1,9 @@
+/**
+ * @file Game.js
+ * @description Core game engine file. Handles the rendering loop, game state,
+ * wave management, UI bindings, and user interactions.
+ */
+
 import { Map } from '../map/Map.js';
 import { Renderer } from '../map/Renderer.js';
 import { DragDrop } from '../ui/DragDrop.js';
@@ -7,107 +13,107 @@ import { AudioControl } from '../ui/AudioControl.js';
 import { StorageManager } from './StorageManager.js';
 
 /**
- * Core Game class managing the main loop, state, and UI integration.
+ * Core Game class managing the main loop, state persistence,
+ * entity interactions (Map, WaveManager), and UI synchronization.
  */
 export class Game {
-    /**
-     * @param {HTMLCanvasElement} canvas - The canvas element to render the game on.
-     */
-    constructor(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        this.isAnimating = false;
+  /**
+   * Initializes the game instance, sets up the rendering context,
+   * and prepares all necessary managers (Map, Renderer, Audio, UI, Waves).
+   *
+   * @param {HTMLCanvasElement} canvas - The canvas element to render the game on.
+   */
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.isAnimating = false;
 
-        this.map = new Map(20, 12);
-        this.renderer = new Renderer(canvas);
-        this.aspectRatio = this.map.gridWidth / this.map.gridHeight;
-        this.tileSize = 0;
+    this.map = new Map(20, 12);
+    this.renderer = new Renderer(canvas);
+    this.aspectRatio = this.map.gridWidth / this.map.gridHeight;
+    this.tileSize = 0;
 
-        // Herní stav
-        this.lives = null;
-        this.money = null;
-        this.wave = null;
-        this.gameSpeed = 1;
-        this.showTowerRanges = true;
-        this.isPaused = false;
-        this.hasStarted = false;
-        this.isContinuing = false; // Příznak pro pokračování
+    this.lives = null;
+    this.money = null;
+    this.wave = null;
+    this.gameSpeed = 1;
+    this.showTowerRanges = true;
+    this.isPaused = false;
+    this.hasStarted = false;
+    this.isContinuing = false;
 
-        // UI elementy
-        this.uiLives = document.getElementById('ui-lives');
-        this.uiMoney = document.getElementById('ui-money');
-        this.uiWave = document.getElementById('ui-wave');
-        this.createSVGLivesIcon();
-        this.createSVGMoneyIcon();
-        this.createSVGWaveIcon();
+    this.uiLives = document.getElementById('ui-lives');
+    this.uiMoney = document.getElementById('ui-money');
+    this.uiWave = document.getElementById('ui-wave');
+    this.createSVGLivesIcon();
+    this.createSVGMoneyIcon();
+    this.createSVGWaveIcon();
 
-      this.audio = new AudioControl();
-        this.map.audio = this.audio;
-        this.setupUI();
+    this.audio = new AudioControl();
+    this.map.audio = this.audio;
+    this.setupUI();
 
-        this.dragDrop = new DragDrop(this, this.canvas);
-        this.waveManager = new WaveManager(this);
-        this.lastTime = 0;
+    this.dragDrop = new DragDrop(this, this.canvas);
+    this.waveManager = new WaveManager(this);
+    this.lastTime = 0;
 
-        window.addEventListener('resize', () => this.resize());
-    }
-
-    /**
-     * Sets up event listeners for UI controls like wave starting, restarting, and game speed.
-     */
-    setupUI() {
-        const waveBtn = document.getElementById('wave-control-btn');
-        if (waveBtn) {
-            waveBtn.addEventListener('click', () => !this.isPaused && this.waveManager.startNextWave());
-        }
-
-        const restartBtn = document.getElementById('restart-btn');
-      if (restartBtn) {
-        restartBtn.addEventListener('click', () => {
-          // 1. Pro jistotu hru pozastavíme, když vyskočí okno
-          const wasPaused = this.isPaused;
-          if (!wasPaused) this.togglePause();
-
-          // 2. Vyvoláme krásný varovný Swal
-          Swal.fire({
-            title: 'Opustit bitvu?',
-            text: 'Opravdu chceš restartovat hru? Tvůj postup v této vlně bude ztracen!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Ano, restartovat',
-            cancelButtonText: 'Zpět do hry',
-            // ZDE JE NAPOJENÍ NA CSS:
-            customClass: {
-              popup: 'swal-custom-popup',
-              title: 'swal-custom-title',
-              confirmButton: 'swal-custom-confirm',
-              cancelButton: 'swal-custom-cancel'
-            }
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Pokud potvrdil, smažeme a reloadneme
-              StorageManager.clearGameState();
-              window.location.reload();
-            } else {
-              // Pokud zrušil, odpauzujeme hru (pokud předtím běžela)
-              if (!wasPaused) this.togglePause();
-            }
-          });
-        });
-      }
-
-        const speedBtns = document.querySelectorAll('.speed-btn');
-        speedBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                speedBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.gameSpeed = parseInt(e.target.textContent);
-            });
-        });
-    }
+    window.addEventListener('resize', () => this.resize());
+  }
 
   /**
-   * Injects the SVG heart icon and lives text into the UI container.
+   * Binds DOM event listeners for UI controls such as starting waves,
+   * restarting the game, and adjusting the simulation speed.
+   * * @returns {void}
+   */
+  setupUI() {
+    const waveBtn = document.getElementById('wave-control-btn');
+    if (waveBtn) {
+      waveBtn.addEventListener('click', () => !this.isPaused && this.waveManager.startNextWave());
+    }
+
+    const restartBtn = document.getElementById('restart-btn');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', () => {
+        const wasPaused = this.isPaused;
+        if (!wasPaused) this.togglePause();
+
+        Swal.fire({
+          title: 'Opustit bitvu?',
+          text: 'Opravdu chceš restartovat hru? Tvůj postup v této vlně bude ztracen!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ano, restartovat',
+          cancelButtonText: 'Zpět do hry',
+          customClass: {
+            popup: 'swal-custom-popup',
+            title: 'swal-custom-title',
+            confirmButton: 'swal-custom-confirm',
+            cancelButton: 'swal-custom-cancel'
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            StorageManager.clearGameState();
+            window.location.reload();
+          } else {
+            if (!wasPaused) this.togglePause();
+          }
+        });
+      });
+    }
+
+    const speedBtns = document.querySelectorAll('.speed-btn');
+    speedBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        speedBtns.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        this.gameSpeed = parseInt(e.target.textContent);
+      });
+    });
+  }
+
+  /**
+   * Dynamically injects an SVG heart icon and lives counter into the UI container.
+   * * @returns {void}
    */
   createSVGLivesIcon() {
     if (!this.uiLives) return;
@@ -119,12 +125,13 @@ export class Game {
           <span id="lives-text-value">Lives: ${this.lives}</span>
          `;
 
-    // Uložíme si prvky pro pozdější updaty
     this.heartSvg = document.getElementById('heart-svg');
     this.livesTextValue = document.getElementById('lives-text-value');
   }
+
   /**
-   * Injects the SVG coin icon and money text into the UI container.
+   * Dynamically injects an SVG coin icon and money counter into the UI container.
+   * * @returns {void}
    */
   createSVGMoneyIcon() {
     if (!this.uiMoney) return;
@@ -138,12 +145,13 @@ export class Game {
       <span id="money-text-value">Money: ${this.money}</span>
     `;
 
-    // Uložíme si prvky pro pozdější updaty
     this.coinSvg = document.getElementById('coin-svg');
     this.moneyTextValue = document.getElementById('money-text-value');
   }
+
   /**
-   * Injects the SVG wave icon and wave text into the UI container.
+   * Dynamically injects an SVG wave icon and wave counter into the UI container.
+   * * @returns {void}
    */
   createSVGWaveIcon() {
     if (!this.uiWave) return;
@@ -156,13 +164,13 @@ export class Game {
       <span id="wave-text-value">Wave: ${this.wave}</span>
     `;
 
-    // Uložíme si unikátní prvky pro vlnu
     this.waveSvg = document.getElementById('wave-svg');
     this.waveTextValue = document.getElementById('wave-text-value');
   }
 
   /**
-   * Persists the current game state to local storage.
+   * Persists the current game state (lives, money, wave, towers) to the StorageManager.
+   * * @returns {void}
    */
   saveCurrentState() {
     StorageManager.saveGameState(
@@ -175,8 +183,11 @@ export class Game {
   }
 
   /**
-   * Initializes the game session, either by loading a saved state or starting fresh.
-   * @param {string} levelUrl - Path to the level JSON configuration.
+   * Initializes the game session. Loads the map level, and either restores
+   * a previously saved game state or resets to a fresh start.
+   *
+   * @param {string} levelUrl - Path to the level JSON configuration file.
+   * @returns {Promise<void>} Resolves when the level configuration is fully loaded.
    */
   async start(levelUrl) {
     this.currentLevelUrl = levelUrl;
@@ -191,8 +202,7 @@ export class Game {
       this.money = savedState.money;
       this.waveManager.currentWaveIndex = this.wave - 1;
 
-      // >>> OPRAVA ZDE: Použijeme forEach, protože addTower si pole plní sám <<<
-      this.map.towers = []; // Pro jistotu plochu nejdřív vyčistíme
+      this.map.towers = [];
       if (savedState.towers) {
         savedState.towers.forEach(t => {
           this.map.addTower(t.type, t.x, t.y);
@@ -202,12 +212,11 @@ export class Game {
       console.log("Začínám čistou hru...");
       StorageManager.clearGameState();
 
-      // >>> TVŮJ HLAVNÍ POŽADAVEK: VŠE SE NASTAVUJE POUZE ZDE <<<
       this.wave = 1;
-      this.lives = 20;   // Natvrdo 20, z mapy se to už nikdy neveme!
-      this.money = 150;  // Natvrdo 150
+      this.lives = 20;
+      this.money = 150;
       this.isPaused = false;
-      this.isGameOver = false; // Prevence proti zasekávání formuláře
+      this.isGameOver = false;
 
       this.waveManager.currentWaveIndex = -1;
       this.waveManager.isWaveActive = false;
@@ -228,7 +237,9 @@ export class Game {
   }
 
   /**
-   * Updates the DOM elements with current lives, money, and wave count.
+   * Synchronizes the DOM UI elements with the current internal game state.
+   * Triggers CSS animations (pops) when values like money or wave change.
+   * * @returns {void}
    */
   updateUI() {
     if (this.livesTextValue) {
@@ -261,49 +272,56 @@ export class Game {
     }
   }
 
-    /**
-     * Toggles the pause state and manages background music and state saving.
-     */
-    togglePause() {
-        this.isPaused = !this.isPaused;
-        if (this.audio) {
-            if (this.isPaused) {
-                this.audio.waveMusic.pause();
-                this.audio.idleMusic.pause();
-                this.saveCurrentState();
-            } else {
-                this.waveManager && this.waveManager.isWaveActive ? this.audio.playWaveMusic() : this.audio.playIdleMusic();
-            }
-        }
+  /**
+   * Toggles the active pause state of the game loop.
+   * Automatically manages background music playback and triggers auto-saving.
+   * * @returns {void}
+   */
+  togglePause() {
+    this.isPaused = !this.isPaused;
+    if (this.audio) {
+      if (this.isPaused) {
+        this.audio.waveMusic.pause();
+        this.audio.idleMusic.pause();
+        this.saveCurrentState();
+      } else {
+        this.waveManager && this.waveManager.isWaveActive ? this.audio.playWaveMusic() : this.audio.playIdleMusic();
+      }
     }
-
-    /**
-     * Attempts to build a tower at the specified grid coordinates.
-     * @param {string} type - The type of tower to build.
-     * @param {number} x - Grid X coordinate.
-     * @param {number} y - Grid Y coordinate.
-     */
-    buildTower(type, x, y) {
-        if (this.isPaused) return;
-        const towerConfig = TowerStats[type];
-        if (!towerConfig || this.money < towerConfig.price || !this.map.isBuildable(x, y)) return;
-
-        if (this.audio) this.audio.playBuildTower();
-        this.money -= towerConfig.price;
-        this.map.addTower(type, x, y);
-        this.updateUI();
-    }
+  }
 
   /**
-   * Reduces player lives and triggers visual/audio feedback. Handles game over logic.
-   * @param {number} amount - Number of lives to subtract.
+   * Attempts to construct a new defensive tower at the specified grid coordinates.
+   * Validates funds and tile availability before placing.
+   *
+   * @param {string} type - The key identifying the tower type (e.g., 'Viking').
+   * @param {number} x - Grid X coordinate where the tower is dropped.
+   * @param {number} y - Grid Y coordinate where the tower is dropped.
+   * @returns {void}
+   */
+  buildTower(type, x, y) {
+    if (this.isPaused) return;
+    const towerConfig = TowerStats[type];
+    if (!towerConfig || this.money < towerConfig.price || !this.map.isBuildable(x, y)) return;
+
+    if (this.audio) this.audio.playBuildTower();
+    this.money -= towerConfig.price;
+    this.map.addTower(type, x, y);
+    this.updateUI();
+  }
+
+  /**
+   * Deducts player lives when an enemy breaches the defense.
+   * Triggers visual/audio feedback and handles the Game Over condition.
+   *
+   * @param {number} amount - The number of lives to subtract (damage dealt by enemy).
+   * @returns {void}
    */
   takeDamage(amount) {
     this.lives = Math.max(0, this.lives - amount);
     this.updateUI();
     if (this.audio) this.audio.playEnemyLeak();
 
-    // Stejný trik pro spolehlivé blikání srdíčka, když projde víc nepřátel naráz
     if (this.heartSvg) {
       this.heartSvg.classList.remove('damaged');
       void this.heartSvg.offsetWidth;
@@ -324,57 +342,62 @@ export class Game {
     }
   }
 
-    /**
-     * Resizes the canvas to fit its container while maintaining aspect ratio.
-     */
-    resize() {
-        const container = this.canvas.parentElement;
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
+  /**
+   * Dynamically resizes the HTML Canvas to fit its parent container
+   * while strictly maintaining the predefined grid aspect ratio.
+   * * @returns {void}
+   */
+  resize() {
+    const container = this.canvas.parentElement;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
 
-        let newWidth = containerWidth;
-        let newHeight = newWidth / this.aspectRatio;
+    let newWidth = containerWidth;
+    let newHeight = newWidth / this.aspectRatio;
 
-        if (newHeight > containerHeight) {
-            newHeight = containerHeight;
-            newWidth = newHeight * this.aspectRatio;
-        }
-
-        this.canvas.width = newWidth;
-        this.canvas.height = newHeight;
-        this.tileSize = this.canvas.width / this.map.gridWidth;
+    if (newHeight > containerHeight) {
+      newHeight = containerHeight;
+      newWidth = newHeight * this.aspectRatio;
     }
 
-    /**
-     * The main animation loop.
-     * @param {number} timestamp - Current time provided by requestAnimationFrame.
-     */
-    animate(timestamp) {
-        if (!this.map.isLoaded) return;
-        if (!this.lastTime) this.lastTime = timestamp;
-        const deltaTime = timestamp - this.lastTime;
-        this.lastTime = timestamp;
+    this.canvas.width = newWidth;
+    this.canvas.height = newHeight;
+    this.tileSize = this.canvas.width / this.map.gridWidth;
+  }
 
-        if (!this.isPaused && this.lives > 0) {
-            this.waveManager.update(deltaTime, this.gameSpeed);
-            const updateResult = this.map.update(this.gameSpeed);
-            if (updateResult) {
-                updateResult.damageTaken > 0 && this.takeDamage(updateResult.damageTaken);
-                updateResult.moneyEarned > 0 && (this.money += updateResult.moneyEarned, this.updateUI());
-            }
-        }
+  /**
+   * The core game animation loop, called recursively via requestAnimationFrame.
+   * Handles delta time calculation, updates game logic, and triggers rendering.
+   *
+   * @param {number} timestamp - Current execution time provided by requestAnimationFrame.
+   * @returns {void}
+   */
+  animate(timestamp) {
+    if (!this.map.isLoaded) return;
+    if (!this.lastTime) this.lastTime = timestamp;
+    const deltaTime = timestamp - this.lastTime;
+    this.lastTime = timestamp;
 
-        this.renderer.render(this.map, this.tileSize, this.showTowerRanges);
-        if (this.isPaused && this.lives > 0) {
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = '40px Consolas';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
-        }
-
-        requestAnimationFrame((ts) => this.animate(ts));
+    if (!this.isPaused && this.lives > 0) {
+      this.waveManager.update(deltaTime, this.gameSpeed);
+      const updateResult = this.map.update(this.gameSpeed);
+      if (updateResult) {
+        updateResult.damageTaken > 0 && this.takeDamage(updateResult.damageTaken);
+        updateResult.moneyEarned > 0 && (this.money += updateResult.moneyEarned, this.updateUI());
+      }
     }
+
+    this.renderer.render(this.map, this.tileSize, this.showTowerRanges);
+    if (this.isPaused && this.lives > 0) {
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '40px Consolas';
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
+    }
+
+    requestAnimationFrame((ts) => this.animate(ts));
+  }
 }

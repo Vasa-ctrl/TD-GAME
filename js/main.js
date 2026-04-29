@@ -18,7 +18,7 @@ window.addEventListener('load', () => {
 
   /**
    * Service Worker registration for offline capabilities.
-   * Enables the application to function as a PWA.
+   * Enables the application to function as a Progressive Web App (PWA).
    */
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch((error) => {
@@ -62,7 +62,7 @@ window.addEventListener('load', () => {
   const menuBtn = document.getElementById('menu-btn');
 
   /**
-   * Renders the preview cards for enemies and towers based on game configuration.
+   * Renders the preview cards for enemies based on game configuration.
    */
   renderEnemyPreview();
 
@@ -74,11 +74,11 @@ window.addEventListener('load', () => {
   if (canvas && mainMenu && startGameBtn && gameUI) {
     let game = new Game(canvas);
 
+    /**
+     * Browsers block autoplay until user interaction.
+     * This listener ensures audio starts after the first user click.
+     */
     const startMusicOnFirstClick = () => {
-      /**
-       * Browsers block autoplay until user interaction.
-       * This listener ensures audio starts after the first click.
-       */
       if (game.audio) game.audio.playIdleMusic();
       document.removeEventListener('click', startMusicOnFirstClick);
     };
@@ -88,7 +88,7 @@ window.addEventListener('load', () => {
       const savedState = StorageManager.loadGameState();
 
       /**
-       * Helper function to reset state and navigate to game.
+       * Helper function to clear saved data, reset state, and navigate to the game view.
        */
       const startNewGame = () => {
         StorageManager.clearGameState();
@@ -148,15 +148,22 @@ window.addEventListener('load', () => {
     if (menuBtn) menuBtn.addEventListener('click', () => window.location.hash = 'menu');
 
     /**
-     * Simple SPA Router based on window.location.hash.
-     * Manages visibility of menus and triggers game start/pause logic.
+     * Unified SPA (Single Page Application) Router.
+     * Parses the current window.location.hash to determine which base view (menu/game)
+     * and which modal (settings/leaderboard) to display.
+     * Automatically handles pausing and resuming the game loop based on visibility.
      */
     const handleNavigation = () => {
-      const hash = window.location.hash.replace('#', '') || 'menu';
+      const fullHash = window.location.hash.replace('#', '') || 'menu';
+      const parts = fullHash.split('/');
+      const baseView = parts[0];     // e.g., 'menu' or 'game'
+      const modalView = parts[1];    // e.g., 'settings', 'leaderboard', or undefined
 
+      // Hide all sections and modals to start with a clean state
       [mainMenu, gameUI, settingsModal, leaderboardModal].forEach(el => el?.classList.add('hidden'));
 
-      if (hash === 'game') {
+      // Render the base view
+      if (baseView === 'game') {
         gameUI.classList.remove('hidden');
 
         if (!game.hasStarted || game.isGameOver) {
@@ -170,61 +177,79 @@ window.addEventListener('load', () => {
           game.start(levelToLoad);
           game.hasStarted = true;
           game.isGameOver = false;
-        } else if (game.isPaused) {
-          game.togglePause();
         }
-      } else if (hash === 'menu') {
+      } else {
         mainMenu.classList.remove('hidden');
-        if (game.hasStarted && !game.isPaused) game.togglePause();
+      }
+
+      // Render the modal overlay if required
+      if (modalView === 'settings') {
+        if (settingsModal) settingsModal.classList.remove('hidden');
+        if (baseView === 'game' && !game.isPaused) game.togglePause();
+      }
+      else if (modalView === 'leaderboard') {
+        if (leaderboardModal) {
+          const lb = StorageManager.getLeaderboard();
+          leaderboardTableBody.innerHTML = lb.length ? lb.map((entry, i) => `
+            <tr><td>${i + 1}</td><td>${entry.name}</td><td>${entry.wave}</td><td>${new Date(entry.date).toLocaleDateString()}</td></tr>
+          `).join('') : '<tr><td colspan="4">No scores yet.</td></tr>';
+          leaderboardModal.classList.remove('hidden');
+        }
+        if (baseView === 'game' && !game.isPaused) game.togglePause();
+      }
+      else {
+        // No modal is active. Resume the game if we are in the game view, or pause if in the menu.
+        if (baseView === 'game') {
+          if (game.isPaused && game.hasStarted && !game.isGameOver) game.togglePause();
+        } else if (baseView === 'menu') {
+          if (game.hasStarted && !game.isPaused) game.togglePause();
+        }
       }
     };
 
+    // Attach the router listener and run it once for the initial state
     window.addEventListener('hashchange', handleNavigation);
     handleNavigation();
 
     /**
-     * Fetches scores from StorageManager and populates the leaderboard table.
+     * Opens the Settings modal by appending '/settings' to the current URL hash.
+     * Triggers the SPA router.
      */
-    const openLeaderboard = () => {
-      if (leaderboardModal) {
-        const lb = StorageManager.getLeaderboard();
-        leaderboardTableBody.innerHTML = lb.length ? lb.map((entry, i) => `
-          <tr><td>${i + 1}</td><td>${entry.name}</td><td>${entry.wave}</td><td>${new Date(entry.date).toLocaleDateString()}</td></tr>
-        `).join('') : '<tr><td colspan="4">No scores yet.</td></tr>';
-        leaderboardModal.classList.remove('hidden');
-      }
-    };
-
-    /**
-     * Hides the leaderboard modal.
-     */
-    const closeLeaderboard = () => {
-      if (leaderboardModal) leaderboardModal.classList.add('hidden');
-    };
-
-    if (leaderboardBtn) leaderboardBtn.addEventListener('click', openLeaderboard);
-    if (closeLeaderboardBtn) closeLeaderboardBtn.addEventListener('click', closeLeaderboard);
-
-    /**
-     * Displays the settings modal and pauses the game if active.
-     */
-
     const openSettings = () => {
-      if (settingsModal) {
-        settingsModal.classList.remove('hidden');
-        if (window.location.hash === '#game' && !game.isPaused) game.togglePause();
-      }
+      const base = window.location.hash.replace('#', '').split('/')[0] || 'menu';
+      window.location.hash = `${base}/settings`;
     };
 
     /**
-     * Hides the settings modal and resumes the game if it was paused.
+     * Closes the Settings modal by reverting the URL hash to the base view.
+     * Triggers the SPA router to hide the modal.
      */
     const closeSettings = () => {
-      if (settingsModal) {
-        settingsModal.classList.add('hidden');
-        if (window.location.hash === '#game' && game.isPaused) game.togglePause();
-      }
+      const base = window.location.hash.replace('#', '').split('/')[0] || 'menu';
+      window.location.hash = base;
     };
+
+    /**
+     * Opens the Leaderboard modal by appending '/leaderboard' to the current URL hash.
+     * Triggers the SPA router.
+     */
+    const openLeaderboard = () => {
+      const base = window.location.hash.replace('#', '').split('/')[0] || 'menu';
+      window.location.hash = `${base}/leaderboard`;
+    };
+
+    /**
+     * Closes the Leaderboard modal by reverting the URL hash to the base view.
+     * Triggers the SPA router to hide the modal.
+     */
+    const closeLeaderboard = () => {
+      const base = window.location.hash.replace('#', '').split('/')[0] || 'menu';
+      window.location.hash = base;
+    };
+
+    // Attach event listeners to UI modal buttons
+    if (leaderboardBtn) leaderboardBtn.addEventListener('click', openLeaderboard);
+    if (closeLeaderboardBtn) closeLeaderboardBtn.addEventListener('click', closeLeaderboard);
 
     if (mainSettingsBtn) mainSettingsBtn.addEventListener('click', openSettings);
     if (gameSettingsBtn) gameSettingsBtn.addEventListener('click', openSettings);
@@ -236,7 +261,7 @@ window.addEventListener('load', () => {
     }
 
     /**
-     * Synchronizes the UI controls with the Audio engine state.
+     * Synchronizes the UI input controls (sliders, checkboxes) with the Game's Audio engine state.
      */
     function attachAudioSettings() {
       if (muteCheckbox && game.audio) {
@@ -262,6 +287,7 @@ window.addEventListener('load', () => {
 
     /**
      * Event listener for the custom 'gameOver' event dispatched by the Game engine.
+     * Displays the Game Over modal and prepares the score saving form.
      */
     window.addEventListener('gameOver', (e) => {
       finalWave = e.detail.wave;
@@ -273,6 +299,9 @@ window.addEventListener('load', () => {
       }
     });
 
+    /**
+     * Handles the submission of the player's score to the local leaderboard.
+     */
     if (saveScoreForm) {
       saveScoreForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -287,6 +316,9 @@ window.addEventListener('load', () => {
       });
     }
 
+    /**
+     * Allows the user to skip saving their score and return to the main menu.
+     */
     if (skipScoreBtn) {
       skipScoreBtn.addEventListener('click', () => {
         gameOverModal.classList.add('hidden');
